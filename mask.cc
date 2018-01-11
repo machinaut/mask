@@ -67,7 +67,7 @@ typedef struct particle {
     uint8_t updates;  // debug counter
 } particle_t;
 
-#define NUM_PARTICLES (1)
+#define NUM_PARTICLES (10)
 particle_t particles[NUM_PARTICLES] = {0};
 
 step_t path_l[] = {
@@ -338,8 +338,8 @@ void randomParticle(particle_t *particle) {
     particle->path_idx = random(paths_len);
     particle->i = 0; //particle->path[0] ?  // XXX
     particle->last = micros();
-    particle->bright = random(256);
-    particle->glow = random(20, 100);  // TODO: tune this
+    particle->bright = random(100);
+    particle->glow = random(100 - particle->bright, 100);  // TODO: tune this
     particle->hue = random(256);
     particle->updates = 0;
 }
@@ -371,7 +371,7 @@ void testParticle() {
     particle->wait = 10000;
     particle->dir = 1;
     particle->last = 0;
-    particle->bright = 120;
+    particle->bright = 80;
     particle->glow = 10;
     particle->hue = 0;
     particle->updates = 0;
@@ -395,8 +395,8 @@ void updateParticles() {
         particle = &particles[i];
         updateParticle(particle);
         if (!(particle->valid)) {
-            // randomParticle(particle);
-            testParticle();
+            randomParticle(particle);
+            // testParticle();
         }
     }
 }
@@ -406,7 +406,7 @@ void drawPixel(int16_t i, uint8_t bright, uint8_t hue) {
         // TODO: add hue
         // TODO: add gamma correction
         pixels[i].r += pgm_read_byte(&gamma8[bright]);
-        pixels[i].g += pgm_read_byte(&gamma8[bright]);
+        // pixels[i].g += pgm_read_byte(&gamma8[bright]);
         pixels[i].b += pgm_read_byte(&gamma8[bright]);
     }
 }
