@@ -103,7 +103,7 @@ path_r = {i: Step(i=i) for i in range(-20, 58 + 16 + 20)}
 
 i = 0
 for seg in path_l_segs:
-    segment = segments[seg]
+    segment = segments[abs(seg)]
     if seg > 0:
         for idx in range(segment.length):
             path_l[i].pixel_i = segment.offset + idx
@@ -120,7 +120,7 @@ for i in range(-20, 58 + 16 + 20):
 
 i = 0
 for seg in path_r_segs:
-    segment = segments[seg]
+    segment = segments[abs(seg)]
     if seg > 0:
         for idx in range(segment.length):
             path_r[i].pixel_i = segment.offset + idx
