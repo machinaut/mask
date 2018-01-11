@@ -11,10 +11,7 @@ class Segment:
         self.out1 = out1 if out1 else out0
         self.sign = sign
         self.twin = twin
-        if self.length == 0:
-            self.start = 255
-            self.end = 255
-        elif self.sign > 0:
+        if self.sign > 0:
             self.start = self.offset
             self.end = self.offset + self.length - 1
         else:
@@ -53,7 +50,7 @@ class Pixel:
 
 # // offset length in0 in1 out0 out1 sign twin
 segments = '''
-    {  0, 0, 0, 0, 0, 0, 0, 0},  // sentinel
+    { -1, 0, 0, 0, 0, 0, 0, 0},  // sentinel
     {  0, 5, 0, 0, 2, 0, 1,18},  // 1
     {  5,10, 1, 0, 3, 0, 1,17},  // 2
     { 15, 8, 2, 0, 4, 0, 1,16},  // 3
@@ -71,7 +68,7 @@ segments = '''
     {102, 7,16, 0,14, 0,-1, 4},  // 15
     {109, 8,17, 0,15, 0,-1, 3},  // 16
     {117,10,18, 0,16, 0,-1, 2},  // 17
-    {127, 5, 0, 0,17, 0,-1, 1},  // 18
+    {127, 5,19, 0,17, 0,-1, 1},  // 18
     {132, 0, 0, 0, 0, 0, 0, 0},  // sentinel
 '''
 
@@ -90,7 +87,7 @@ def clip(i):
 
 
 pixels2 = [Pixel(i=i) for i in range(132)]
-for seg, segment in enumerate(segments):
+for seg, segment in enumerate(segments[:-1]):
     # Fill out seg
     for i in range(segment.length):
         pixel = pixels2[segment.offset + i]
