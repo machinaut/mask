@@ -86,123 +86,51 @@ def clip(i):
     return 255 if i < 0 or i > 131 else i
 
 
-pixels2 = [Pixel(i=i) for i in range(132)]
-for seg, segment in enumerate(segments[:-1]):
-    # Fill out seg
-    for i in range(segment.length):
-        pixel = pixels2[segment.offset + i]
-        pixel.seg = seg
-    # Fill out non-branching next pixels
-    for i in range(segment.length - 1):
-        if segment.sign > 0:
-            pixel = pixels2[segment.offset + i]
-            pixel.next_l_i = pixel.next_r_i = segment.offset + i + 1
-        else:
-            pixel = pixels2[segment.offset + segment.length - 1 - i]
-            pixel.next_l_i = pixel.next_r_i = segment.offset + segment.length - 2 - i
-    # Fill out non-branching previous pixels
-    for i in range(1, segment.length):
-        if segment.sign > 0:
-            pixel = pixels2[segment.offset + i]
-            pixel.prev_l_i = pixel.prev_r_i = segment.offset + i - 1
-        else:
-            pixel = pixels2[segment.offset + segment.length - 1 - i]
-            pixel.prev_l_i = pixel.prev_r_i = segment.offset + segment.length - i
-    # Fill out branches
-    # import ipdb; ipdb.set_trace()
+class Step:
+    def __init__(self, i, pixel_i=-1, seg=None):
+        self.i = i
+        self.pixel_i = pixel_i
+        self.seg = seg
 
-    if segment.start < len(pixels2):
-        start = pixels2[segment.start]
-        start.prev_l_i = segments[segment.in0].end
-        start.prev_r_i = segments[segment.in1].end
-    if segment.end < len(pixels2):
-        end = pixels2[segment.end]
-        end.next_l_i = segments[segment.out0].start
-        end.next_r_i = segments[segment.out1].start
+    def __str__(self):
+        return '{% 3d, % 3d}, // seg %s' % (self.i, self.pixel_i, self.seg)
 
 
-for pixel in pixels2:
-    print(pixel)
+path_l_segs = [1, 2, 3, 4, -14, 5, 6, 7, 8, 9]
+path_r_segs = [-18, -17, -16, -15, -14, -13, -12, -11, -10, 9]
+path_l = {i: Step(i=i) for i in range(-20, 58 + 16 + 20)}
+path_r = {i: Step(i=i) for i in range(-20, 58 + 16 + 20)}
 
+i = 0
+for seg in path_l_segs:
+    segment = segments[seg]
+    if seg > 0:
+        for idx in range(segment.length):
+            path_l[i].pixel_i = segment.offset + idx
+            path_l[i].seg = seg
+            i += 1
+    else:
+        for idx in range(segment.length -1, -1, -1):
+            path_l[i].pixel_i = segment.offset + idx
+            path_l[i].seg = seg
+            i += 1
+print('left side')
+for i in range(-20, 58 + 16 + 20):
+    print(path_l[i])
 
-exit(1)
-
-
-pixels = []
-for seg, segment in enumerate(segments):
-    if seg == 0:
-        continue  # ignore sentinel
-    for idx in range(segment.length):
-        i = segment.offset + idx
-        next_l_i = next_r_i = i + segment.sign
-        next_l_idx = next_r_idx = idx + segment.sign
-        next_l_seg = next_r_seg = seg
-        if next_l_idx < 0 or next_l_idx >= segment.length:
-            if next_l_idx < 0:
-                next_l_seg = segment.in0
-            elif next_l_idx >= segment.length:
-                next_l_seg = segment.out0
-            if next_l_seg == 0:
-                next_l_idx = -1000
-            elif segments[next_l_seg].sign > 0:
-                next_l_idx = 0
-            else:
-                next_l_idx = segments[next_l_seg].length - 1
-        if next_r_idx < 0 or next_r_idx >= segment.length:
-            if next_r_idx < 0:
-                next_r_seg = segment.in1
-            elif next_r_idx >= segment.length:
-                next_r_seg = segment.out1
-            if next_r_seg == 0:
-                next_r_idx = -1000
-            elif segments[next_r_seg].sign > 0:
-                next_r_idx = 0
-            else:
-                next_r_idx = segments[next_r_seg].length - 1
-        prev_l_i = prev_r_i = i - segment.sign
-        prev_l_idx = prev_r_idx = idx - segment.sign
-        prev_l_seg = prev_r_idx = idx - segment.sign
-        if prev_l_idx < 0 or prev_l_idx >= segment.length:
-            if prev_l_idx < 0:
-                prev_l_seg = segment.out0
-            elif prev_l_idx >= segment.length:
-                prev_l_seg = segment.in0
-            if prev_l_seg == 0:
-                prev_l_idx = -1000
-            elif segments[prev_l_seg].sign > 0:
-                prev_l_idx = segments[prev_l_seg].length - 1
-            else:
-                prev_l_idx = 0
-            prev_l_i = clip(segments[prev_l_seg].offset + prev_l_idx)
-        if prev_r_idx < 0 or prev_r_idx >= segment.length:
-            if prev_r_idx < 0:
-                prev_r_seg = segment.out1
-            elif prev_r_idx >= segment.length:
-                prev_r_seg = segment.in1
-            if prev_r_seg == 0:
-                prev_r_idx = -1000
-            elif segments[prev_r_seg].sign > 0:
-                prev_r_idx = segments[prev_r_seg].length - 1
-            else:
-                prev_r_idx = 0
-            prev_r_i = clip(segments[prev_r_seg].offset + prev_r_idx)
-        assert len(pixels) == i
-        pixel = Pixel(
-            i=i, idx=idx, seg=seg,
-            next_l_i=next_l_i, next_l_idx=next_l_idx, next_l_seg=next_l_seg,
-            next_r_i=next_r_i, next_r_idx=next_r_idx, next_r_seg=next_r_seg,
-            prev_l_i=prev_l_i, prev_l_idx=prev_l_idx, prev_l_seg=prev_l_seg,
-            prev_r_i=prev_r_i, prev_r_idx=prev_r_idx, prev_r_seg=prev_r_seg)
-        pixels.append(pixel)
-
-for pixel in pixels:
-    assert 0 <= pixel.i < 132
-    assert 1 <= pixel.seg <= 18
-    segment = segments[pixel.seg]
-    assert 0 <= pixel.idx < segment.length
-    if pixel.next_l_seg == pixel.seg:
-        assert pixel.next_l_seg == pixel.next_r_seg == pixel.seg
-        assert pixel.next_l_idx == pixel.next_r_idx == pixel.idx + segment.sign
-
-for pixel in pixels:
-    print(pixel)
+i = 0
+for seg in path_r_segs:
+    segment = segments[seg]
+    if seg > 0:
+        for idx in range(segment.length):
+            path_r[i].pixel_i = segment.offset + idx
+            path_r[i].seg = seg
+            i += 1
+    else:
+        for idx in range(segment.length -1, -1, -1):
+            path_r[i].pixel_i = segment.offset + idx
+            path_r[i].seg = seg
+            i += 1
+print('right side')
+for i in range(-20, 58 + 16 + 20):
+    print(path_r[i])
