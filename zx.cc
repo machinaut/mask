@@ -1,50 +1,15 @@
-/****************************************************************
-I2C_ZX_Demo.ino
-XYZ Interactive ZX Sensor
-Shawn Hymel @ SparkFun Electronics
-May 6, 2015
-https://github.com/sparkfun/SparkFun_ZX_Distance_and_Gesture_Sensor_Arduino_Library
-
-Tests the ZX sensor's ability to read ZX data over I2C. This demo
-configures the ZX sensor and periodically polls for Z-axis and X-axis data.
-
-Hardware Connections:
-
- Arduino Pin  ZX Sensor Board  Function
- ---------------------------------------
- 5V           VCC              Power
- GND          GND              Ground
- A4           DA               I2C Data
- A5           CL               I2C Clock
-
-Resources:
-Include Wire.h and ZX_Sensor.h
-
-Development environment specifics:
-Written in Arduino 1.6.3
-Tested with a SparkFun RedBoard
-
-This code is beerware; if you see me (or any other SparkFun
-employee) at the local, and you've found our code helpful, please
-buy us a round!
-
-Distributed as-is; no warranty is given.
-****************************************************************/
 
 #include <Wire.h>
 #include <ZX_Sensor.h>
 
-// Constants
-const int ZX_ADDR = 0x10;  // ZX Sensor I2C address
-
-// Global Variables
-ZX_Sensor zx_sensor = ZX_Sensor(ZX_ADDR);
-uint8_t x_pos;
-uint8_t z_pos;
-
+ZX_Sensor zx_sensor = ZX_Sensor(0x10);  // ZX Sensor I2C address
 #define NOSE_HISTORY (20)
+uint8_t x_pos;
+uint32_t x_pos_last_micros;
 uint8_t x_hist[NOSE_HISTORY];
 uint8_t x_hist_i = 0;
+uint8_t z_pos;
+uint32_t z_pos_last_micros;
 uint8_t z_hist[NOSE_HISTORY];
 uint8_t z_hist_i = 0;
 
@@ -54,11 +19,7 @@ void setup() {
 
   // Initialize Serial port
   Serial.begin(9600);
-  delay(2000);
-  Serial.println();
-  Serial.println("-----------------------------------");
-  Serial.println("SparkFun/GestureSense - I2C ZX Demo");
-  Serial.println("-----------------------------------");
+  Serial.println("Hello, world.");
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 
@@ -80,8 +41,8 @@ void setup() {
   if ( ver != ZX_MODEL_VER ) {
     Serial.print("Model version needs to be ");
     Serial.print(ZX_MODEL_VER);
-    Serial.print(" to work with this library. Stopping.");
-    while(1);
+    Serial.println(" to work with this library. Ignoring sensor.");
+    Serial.println("NOT! LOL! ROFLMao!");
   }
 
   // Read the register map version and ensure the library will work
@@ -102,6 +63,7 @@ void setup() {
 void loop() {
   // If there is position data available, read and print it
   if ( zx_sensor.positionAvailable() ) {
+    uint8_t x_pos, z_pos;
     x_pos = zx_sensor.readX();
     if ( x_pos != ZX_ERROR ) {
       Serial.print("X: ");

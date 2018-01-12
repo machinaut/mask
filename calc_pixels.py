@@ -93,44 +93,46 @@ class Step:
         self.seg = seg
 
     def __str__(self):
-        return '{% 3d, % 3d}, // seg %s' % (self.i, self.pixel_i, self.seg)
+        return '{% 3d, % 3d}, /* seg %s */' % (self.i, self.pixel_i, self.seg)
 
 
-path_l_segs = [1, 2, 3, 4, -14, 5, 6, 7, 8, 9]
-path_r_segs = [-18, -17, -16, -15, -14, -13, -12, -11, -10, 9]
-path_l = {i: Step(i=i) for i in range(-20, 58 + 12 + 20)}
-path_r = {i: Step(i=i) for i in range(-20, 58 + 12 + 20)}
+class Path:
+    def __init__(self, name, seg_list, ends=False):
+        self.name = name
+        self.steps = {}
+        for seg in seg_list:
+            segment = segments[abs(seg)]
+            if seg > 0:
+                r = range(segment.length)
+            else:
+                r = range(segment.length - 1, -1, -1)
+            i = 0
+            for idx in r:
+                self.steps[i] = Step(i=i)
+                self.steps[i].pixel_i = segment.offset + idx
+                self.steps[i].seg = seg
+                i += 1
+            if ends:
+                for j in range(i, i + 20):
+                    self.steps[j] = Step(i=j)
+                for j in range(1, -21, -1):
+                    self.steps[j] = Step(i=j)
 
-i = 0
-for seg in path_l_segs:
-    segment = segments[abs(seg)]
-    if seg > 0:
-        for idx in range(segment.length):
-            path_l[i].pixel_i = segment.offset + idx
-            path_l[i].seg = seg
-            i += 1
-    else:
-        for idx in range(segment.length -1, -1, -1):
-            path_l[i].pixel_i = segment.offset + idx
-            path_l[i].seg = seg
-            i += 1
-print('left side')
-for i in range(-20, 58 + 12 + 20):
-    print(path_l[i])
+    def __str__(self):
+        # PYTHON IS BAD
+        s = "step_t path_{name}[] =".format(name=self.name)
+        s += " {\n"
+        for step in self.steps.values():
+            s += str(step)
+        s += '\n};\n'
+        s += 'uint16_t path_{name}_len = sizeof(path_{name}) / sizeof(path_{name}[0]);'.format(name=self.name)
+        return s
 
-i = 0
-for seg in path_r_segs:
-    segment = segments[abs(seg)]
-    if seg > 0:
-        for idx in range(segment.length):
-            path_r[i].pixel_i = segment.offset + idx
-            path_r[i].seg = seg
-            i += 1
-    else:
-        for idx in range(segment.length -1, -1, -1):
-            path_r[i].pixel_i = segment.offset + idx
-            path_r[i].seg = seg
-            i += 1
-print('right side')
-for i in range(-20, 58 + 12 + 20):
-    print(path_r[i])
+
+path_l = Path('l', [1, 2, 3, 4, -14, 5, 6, 7, 8, 9], ends=True)
+path_r = Path('r', [-18, -17, -16, -15, -14, -13, -12, -11, -10, 9], ends=True)
+path_b = Path('b', [1, 2, 3, 4, -14, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], ends=True)
+
+print(path_l)
+print(path_r)
+print(path_b)

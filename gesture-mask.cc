@@ -5,6 +5,10 @@
   #include <avr/power.h>
 #endif
 
+#include <Wire.h>
+#include <ZX_Sensor.h>
+
+
 #define PIN 4  // Trinket M0
 
 // Parameter 1 = number of pixels in strip
@@ -70,6 +74,11 @@ typedef struct particle {
 #define NUM_PARTICLES (10)
 particle_t particles[NUM_PARTICLES] = {0};
 
+typedef struct path {
+    step_t *path;
+    uint16_t length;
+} path_t;
+
 step_t path_l[] = {
 {  0,  -1}, /* seg None */{  1,  -1}, /* seg None */{  2,  -1}, /* seg None */{  3,  -1}, /* seg None */{  4,  -1}, /* seg None */{  5,  -1}, /* seg None */{  6,  -1}, /* seg None */{  7,  -1}, /* seg None */{  8,  -1}, /* seg None */{  9,  -1}, /* seg None */{ 10,  -1}, /* seg None */{ 11,  -1}, /* seg None */{ 12,  -1}, /* seg None */{ 13,  -1}, /* seg None */{ 14,  -1}, /* seg None */{ 15,  -1}, /* seg None */{ 16,  -1}, /* seg None */{ 17,  -1}, /* seg None */{ 18,  -1}, /* seg None */{ 19,  -1}, /* seg None */{ 20,  -1}, /* seg None */{ 21,  -1}, /* seg None */{ 22,  -1}, /* seg None */{ 23,  -1}, /* seg None */{ 24,  -1}, /* seg None */{ -1,  -1}, /* seg None */{ -2,  -1}, /* seg None */{ -3,  -1}, /* seg None */{ -4,  -1}, /* seg None */{ -5,  -1}, /* seg None */{ -6,  -1}, /* seg None */{ -7,  -1}, /* seg None */{ -8,  -1}, /* seg None */{ -9,  -1}, /* seg None */{-10,  -1}, /* seg None */{-11,  -1}, /* seg None */{-12,  -1}, /* seg None */{-13,  -1}, /* seg None */{-14,  -1}, /* seg None */{-15,  -1}, /* seg None */{-16,  -1}, /* seg None */{-17,  -1}, /* seg None */{-18,  -1}, /* seg None */{-19,  -1}, /* seg None */{-20,  -1}, /* seg None */{ 25,  -1}, /* seg None */{ 26,  -1}, /* seg None */{ 27,  -1}, /* seg None */{ 28,  -1}, /* seg None */{ 29,  -1}, /* seg None */{ 30,  -1}, /* seg None */{ 31,  -1}, /* seg None */
 };
@@ -83,33 +92,48 @@ step_t path_b[] = {
 };
 uint16_t path_b_len = sizeof(path_b) / sizeof(path_b[0]);
 
-typedef struct path {
-    step_t *path;
-    uint16_t length;
-} path_t;
-
 path_t paths[] = {
     {path_l, path_l_len},
     {path_r, path_r_len},
+    {path_b, path_b_len},
 };
 uint16_t paths_len = sizeof(paths) / sizeof(paths[0]);
 
-void setup() {
-  // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
-  #if defined (__AVR_ATtiny85__)
-    if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
-  #endif
-  // End of trinket special code
 
-  Serial.begin(9600);
-  randomSeed(analogRead(1));
-  strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
-  testParticle();
+ZX_Sensor zx_sensor = ZX_Sensor(0x10);  // ZX Sensor I2C address
+#define NOSE_HISTORY (20)
+uint8_t x_pos;
+uint32_t x_pos_last_micros;
+uint8_t x_hist[NOSE_HISTORY];
+uint8_t x_hist_i = 0;
+uint8_t z_pos;
+uint32_t z_pos_last_micros;
+uint8_t z_hist[NOSE_HISTORY];
+uint8_t z_hist_i = 0;
+
+
+void setup() {
+    // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
+    #if defined (__AVR_ATtiny85__)
+        if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
+    #endif
+    // End of trinket special code
+
+    Serial.begin(9600);
+    Serial.println("Hello, world.");
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
+    randomSeed(analogRead(1));
+    initZX();
+    strip.begin();
+    strip.show(); // Initialize all pixels to 'off'
+    testParticle();
 }
 
 void loop() {
-    debugParticle(0);
+    // debugParticle(0);
+    debugZX();
+    readZX();
     updateParticles();
     renderParticles();
     showPixels();
@@ -146,6 +170,14 @@ void debugParticle(uint16_t i) {
     Serial.print("glow "); Serial.println(particle->glow);
     Serial.print("hue "); Serial.println(particle->hue);
     Serial.print("updates "); Serial.println(particle->updates);
+}
+
+void debugZX() {
+    Serial.print("ZX Sensor: ");
+    Serial.print("X: ");
+    Serial.print(x_pos);
+    Serial.print(" Z: ");
+    Serial.println(z_pos);
 }
 
 void testParticle() {
@@ -237,4 +269,62 @@ void showPixels() {
         strip.setPixelColor(i, pixels[i].r, pixels[i].g, pixels[i].b);
     }
     strip.show();
+}
+
+void initZX(){
+      uint8_t ver;
+      // Initialize ZX Sensor (configure I2C and read model ID)
+      if ( zx_sensor.init() ) {
+        Serial.println("ZX Sensor initialization complete");
+      } else {
+        Serial.println("Something went wrong during ZX Sensor init!");
+        // XXX
+      }
+
+      // Read the model version number and ensure the library will work
+      ver = zx_sensor.getModelVersion();
+      if ( ver == ZX_ERROR ) {
+        Serial.println("Error reading model version number");
+      } else {
+        Serial.print("Model version: ");
+        Serial.println(ver);
+      }
+      if ( ver != ZX_MODEL_VER ) {
+        Serial.print("Model version needs to be ");
+        Serial.print(ZX_MODEL_VER);
+        Serial.println(" to work with this library. Ignoring sensor.");
+        Serial.println("NOT! LOL! ROFLMao!"); // XXX
+      }
+
+      // Read the register map version and ensure the library will work
+      ver = zx_sensor.getRegMapVersion();
+      if ( ver == ZX_ERROR ) {
+        Serial.println("Error reading register map version number");
+      } else {
+        Serial.print("Register Map Version: ");
+        Serial.println(ver);
+      }
+      if ( ver != ZX_REG_MAP_VER ) {
+        Serial.print("Register map version needs to be ");
+        Serial.print(ZX_REG_MAP_VER);
+        Serial.print(" to work with this library. Stopping.");
+      }
+}
+
+void readZX() {
+    if ( zx_sensor.positionAvailable() ) {
+        x_pos = zx_sensor.readX();
+        if ( x_pos != ZX_ERROR ) {
+            x_pos_last_micros = micros();
+            x_hist[x_hist_i] = x_pos;
+            x_hist_i = (x_hist_i + 1) % NOSE_HISTORY;
+        }
+        z_pos = zx_sensor.readZ();
+        if ( z_pos != ZX_ERROR ) {
+            z_pos_last_micros = micros();
+            z_hist[z_hist_i] = z_pos;
+            z_hist_i = (z_hist_i + 1) % NOSE_HISTORY;
+            analogWrite(LED_BUILTIN, z_pos);
+        }
+    }
 }
