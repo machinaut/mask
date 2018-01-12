@@ -73,6 +73,8 @@ typedef struct particle {
 
 #define NUM_PARTICLES (10)
 particle_t particles[NUM_PARTICLES] = {0};
+#define NUM_FIXED_PARTICLES (2)
+particle_t fixed_particles[NUM_FIXED_PARTICLES] = {0};
 
 typedef struct path {
     step_t *path;
@@ -112,31 +114,44 @@ uint8_t z_hist[NOSE_HISTORY];
 uint8_t z_hist_i = 0;
 
 
-void setup() {
-    // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
-    #if defined (__AVR_ATtiny85__)
-        if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
-    #endif
-    // End of trinket special code
+void initZX(){
+      uint8_t ver;
+      // Initialize ZX Sensor (configure I2C and read model ID)
+      if ( zx_sensor.init() ) {
+        Serial.println("ZX Sensor initialization complete");
+      } else {
+        Serial.println("Something went wrong during ZX Sensor init!");
+        // XXX
+      }
 
-    Serial.begin(9600);
-    Serial.println("Hello, world.");
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
-    randomSeed(analogRead(1));
-    initZX();
-    strip.begin();
-    strip.show(); // Initialize all pixels to 'off'
-    testParticle();
-}
+      // Read the model version number and ensure the library will work
+      ver = zx_sensor.getModelVersion();
+      if ( ver == ZX_ERROR ) {
+        Serial.println("Error reading model version number");
+      } else {
+        Serial.print("Model version: ");
+        Serial.println(ver);
+      }
+      if ( ver != ZX_MODEL_VER ) {
+        Serial.print("Model version needs to be ");
+        Serial.print(ZX_MODEL_VER);
+        Serial.println(" to work with this library. Ignoring sensor.");
+        Serial.println("NOT! LOL! ROFLMao!"); // XXX
+      }
 
-void loop() {
-    // debugParticle(0);
-    debugZX();
-    readZX();
-    updateParticles();
-    renderParticles();
-    showPixels();
+      // Read the register map version and ensure the library will work
+      ver = zx_sensor.getRegMapVersion();
+      if ( ver == ZX_ERROR ) {
+        Serial.println("Error reading register map version number");
+      } else {
+        Serial.print("Register Map Version: ");
+        Serial.println(ver);
+      }
+      if ( ver != ZX_REG_MAP_VER ) {
+        Serial.print("Register map version needs to be ");
+        Serial.print(ZX_REG_MAP_VER);
+        Serial.print(" to work with this library. Stopping.");
+      }
 }
 
 void randomParticle(particle_t *particle) {
@@ -218,6 +233,31 @@ void updateParticles() {
     }
 }
 
+void updateFixedParticle(uint8_t i, particle_t *particle) {
+    if (!(particle->valid)) return;
+    if (i == 0 || i == 1) {
+        particle->valid = 1;
+        particle->path_idx = i;
+        if (i == 0) {
+            particle->i = map(x_pos, 0, 255, 0, paths[particle->path_idx].length);
+        } else {
+            particle->i = map(z_pos, 0, 255, 0, paths[particle->path_idx].length);
+        }
+        particle->bright = 80;
+        particle->glow = 20;
+        particle->hue = 0;
+        particle->updates++;
+    }
+}
+
+void updateFixedParticles() {
+    particle_t *particle;
+    for (uint8_t i = 0; i < NUM_FIXED_PARTICLES; i++) {
+        particle = &fixed_particles[i];
+        updateFixedParticle(i, particle);
+    }
+}
+
 void drawPixel(int16_t i, uint8_t bright, uint8_t hue) {
     if (i >= 0 && i < STRIP_LEN) {
         // TODO: add hue
@@ -262,6 +302,9 @@ void renderParticles() {
     for (uint8_t i = 0; i < NUM_PARTICLES; i++) {
         renderParticle(&particles[i]);
     }
+    for (uint8_t i = 0; i < NUM_FIXED_PARTICLES; i++) {
+        renderParticle(&fixed_particles[i]);
+    }
 }
 
 void showPixels() {
@@ -269,46 +312,6 @@ void showPixels() {
         strip.setPixelColor(i, pixels[i].r, pixels[i].g, pixels[i].b);
     }
     strip.show();
-}
-
-void initZX(){
-      uint8_t ver;
-      // Initialize ZX Sensor (configure I2C and read model ID)
-      if ( zx_sensor.init() ) {
-        Serial.println("ZX Sensor initialization complete");
-      } else {
-        Serial.println("Something went wrong during ZX Sensor init!");
-        // XXX
-      }
-
-      // Read the model version number and ensure the library will work
-      ver = zx_sensor.getModelVersion();
-      if ( ver == ZX_ERROR ) {
-        Serial.println("Error reading model version number");
-      } else {
-        Serial.print("Model version: ");
-        Serial.println(ver);
-      }
-      if ( ver != ZX_MODEL_VER ) {
-        Serial.print("Model version needs to be ");
-        Serial.print(ZX_MODEL_VER);
-        Serial.println(" to work with this library. Ignoring sensor.");
-        Serial.println("NOT! LOL! ROFLMao!"); // XXX
-      }
-
-      // Read the register map version and ensure the library will work
-      ver = zx_sensor.getRegMapVersion();
-      if ( ver == ZX_ERROR ) {
-        Serial.println("Error reading register map version number");
-      } else {
-        Serial.print("Register Map Version: ");
-        Serial.println(ver);
-      }
-      if ( ver != ZX_REG_MAP_VER ) {
-        Serial.print("Register map version needs to be ");
-        Serial.print(ZX_REG_MAP_VER);
-        Serial.print(" to work with this library. Stopping.");
-      }
 }
 
 void readZX() {
@@ -327,4 +330,34 @@ void readZX() {
             analogWrite(LED_BUILTIN, z_pos);
         }
     }
+}
+
+
+
+void setup() {
+    // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
+    #if defined (__AVR_ATtiny85__)
+        if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
+    #endif
+    // End of trinket special code
+
+    Serial.begin(9600);
+    Serial.println("Hello, world.");
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
+    randomSeed(analogRead(1));
+    initZX();
+    strip.begin();
+    strip.show(); // Initialize all pixels to 'off'
+    testParticle();
+}
+
+void loop() {
+    // debugParticle(0);
+    debugZX();
+    readZX();
+    updateParticles();
+    updateFixedParticles();
+    renderParticles();
+    showPixels();
 }
