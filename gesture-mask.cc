@@ -114,6 +114,196 @@ uint8_t z_hist[NOSE_HISTORY];
 uint8_t z_hist_i = 0;
 
 
+void randomParticle(particle_t *particle) {
+    uint8_t seg = random(1, 19);
+    particle->valid = 1;
+    particle->wait = random(20000, 100000);
+    particle->dir = (random(2) > 0) ? 1 : -1;
+    particle->path_idx = random(paths_len);
+    particle->i = 0; //particle->path[0] ?  // XXX
+    particle->last = micros();
+    particle->bright = random(100);
+    particle->glow = random(100 - particle->bright, 100);  // TODO: tune this
+    particle->hue = random(256);
+    particle->updates = 0;
+}
+
+void debugParticle(uint16_t i) {
+    particle_t *particle = &particles[i];
+    Serial.print("debugging particle: "); Serial.println(i);
+    Serial.print("particle: "); Serial.println((uint32_t)(particle));
+    Serial.print("current micros "); Serial.println(micros());
+    Serial.print("cast micros "); Serial.println((uint32_t)(micros()));
+    Serial.print("current millis "); Serial.println(millis());
+    Serial.print("valid "); Serial.println(particle->valid);
+    Serial.print("path_idx "); Serial.println(particle->path_idx);
+    Serial.print("i "); Serial.println(particle->i);
+    Serial.print("wait "); Serial.println(particle->wait);
+    Serial.print("dir "); Serial.println(particle->dir);
+    Serial.print("last "); Serial.println(particle->last);
+    Serial.print("next "); Serial.println(particle->last + particle->wait);
+    Serial.print("bright "); Serial.println(particle->bright);
+    Serial.print("glow "); Serial.println(particle->glow);
+    Serial.print("hue "); Serial.println(particle->hue);
+    Serial.print("updates "); Serial.println(particle->updates);
+}
+
+void debugZX() {
+    Serial.print("ZX Sensor: ");
+    Serial.print("X: ");
+    Serial.print(x_pos);
+    Serial.print(" Z: ");
+    Serial.println(z_pos);
+}
+
+void testParticle() {
+    particle_t *particle = &particles[0];
+    Serial.println("testParticle() writing out");
+    particle->valid = 1;
+    particle->i = 0;
+    particle->path_idx = 1;
+    particle->wait = 10000;
+    particle->dir = 1;
+    particle->last = 0;
+    particle->bright = 80;
+    particle->glow = 10;
+    particle->hue = 0;
+    particle->updates = 0;
+}
+
+void updateParticle(particle_t *particle) {
+    uint32_t current = micros();
+    if (!(particle->valid)) return;
+    Serial.print("updating particle: "); Serial.println((uint32_t)(particle));
+    Serial.print("updating last: "); Serial.println(particle->last);
+    Serial.print("updating wait: "); Serial.println(particle->wait);
+    Serial.print("updating next: "); Serial.println(particle->last + particle->wait);
+    Serial.print("updating current: "); Serial.println(current);
+    Serial.print("updating ready: "); Serial.println((uint8_t)(particle->last + particle->wait <= current));
+    if (particle->last + particle->wait > current) return;
+    particle->i += particle->dir;
+    Serial.print("updated i: "); Serial.println(particle->i);
+    if (particle->i < 0 || particle->i >= paths[particle->path_idx].length) {
+        particle->valid = 0;
+    }
+    Serial.print("updated valid: "); Serial.println(particle->valid);
+    particle->last = micros();
+    Serial.print("updated last: "); Serial.println(particle->last);
+    Serial.print("finished updating: "); Serial.println((uint32_t)(particle));
+    particle->updates++;
+}
+
+void updateParticles() {
+    particle_t *particle;
+    for (uint8_t i = 0; i < NUM_PARTICLES; i++) {
+        particle = &particles[i];
+        updateParticle(particle);
+        if (!(particle->valid)) {
+            // randomParticle(particle);
+        }
+    }
+}
+
+void updateFixedParticle(uint8_t i, particle_t *particle) {
+    Serial.print("Updating fixed particle: "); Serial.println((uint32_t)(particle));
+    if (!(particle->valid)) return;
+    if (i == 0 || i == 1) {
+        particle->valid = 1;
+        particle->path_idx = i;
+        if (i == 0) {
+            particle->i = map(x_pos, 0, 255, 0, paths[particle->path_idx].length);
+        } else {
+            particle->i = map(z_pos, 0, 255, 0, paths[particle->path_idx].length);
+        }
+        particle->bright = 80;
+        particle->glow = 20;
+        particle->hue = 0;
+        particle->updates++;
+    }
+}
+
+void updateFixedParticles() {
+    particle_t *particle;
+    for (uint8_t i = 0; i < NUM_FIXED_PARTICLES; i++) {
+        particle = &fixed_particles[i];
+        updateFixedParticle(i, particle);
+    }
+}
+
+void drawPixel(int16_t i, uint8_t bright, uint8_t hue) {
+    if (i >= 0 && i < STRIP_LEN) {
+        // TODO: add hue
+        // TODO: add gamma correction
+        pixels[i].r += pgm_read_byte(&gamma8[bright]);
+        // pixels[i].g += pgm_read_byte(&gamma8[bright]);
+        pixels[i].b += pgm_read_byte(&gamma8[bright]);
+    }
+}
+
+void renderParticle(particle_t *particle) {
+    uint8_t bright;
+    if (!(particle->valid)) return;
+    Serial.print("rendering particle"); Serial.println((uint32_t)(particle));
+    Serial.print("starting at: "); Serial.println(particle->i);
+    // Forward glow
+    bright = particle->bright;
+    for (int16_t i = particle->i; i < paths[particle->path_idx].length; i++) {
+        step_t *path = paths[particle->path_idx].path;
+        Serial.print("drawing pixel: "); Serial.println(i);
+        drawPixel(path[i].pixel_i, bright, particle->hue);
+        if (bright < particle->glow) break;
+        bright -= particle->glow;
+    }
+    // Backward glow
+    bright = particle->bright;
+    for (int16_t i = particle->i; i > 0; i--) {
+        step_t *path = paths[particle->path_idx].path;
+        drawPixel(path[i].pixel_i, bright, particle->hue);
+        Serial.print("drawing pixel: "); Serial.println(i);
+        if (bright < particle->glow) break;
+        bright -= particle->glow;
+    }
+}
+
+void blankPixels() {
+    for (uint16_t i = 0; i < STRIP_LEN; i++) {
+        pixels[i].r = 0;
+        pixels[i].g = 0;
+        pixels[i].b = 0;
+    }
+}
+
+void renderParticles() {
+    blankPixels();
+    for (uint8_t i = 0; i < NUM_PARTICLES; i++) {
+        renderParticle(&particles[i]);
+    }
+    for (uint8_t i = 0; i < NUM_FIXED_PARTICLES; i++) {
+        renderParticle(&fixed_particles[i]);
+    }
+}
+
+void debugPixels() {
+    Serial.println("pixels");
+    for (uint16_t i = 0; i < STRIP_LEN; i++) {
+        if (pixels[i].r || pixels[i].g || pixels[i].b) {
+            Serial.print("i"); Serial.print(i);
+            Serial.print("r"); Serial.print(pixels[i].r);
+            Serial.print("g"); Serial.print(pixels[i].g);
+            Serial.print("b"); Serial.print(pixels[i].b);
+        }
+    }
+    Serial.println("");
+    Serial.println("pixels");
+}
+
+void showPixels() {
+    for (uint16_t i = 0; i < STRIP_LEN; i++) {
+        strip.setPixelColor(i, pixels[i].r, pixels[i].g, pixels[i].b);
+    }
+    strip.show();
+}
+
 void initZX(){
       uint8_t ver;
       // Initialize ZX Sensor (configure I2C and read model ID)
@@ -154,166 +344,6 @@ void initZX(){
       }
 }
 
-void randomParticle(particle_t *particle) {
-    uint8_t seg = random(1, 19);
-    particle->valid = 1;
-    particle->wait = random(20000, 100000);
-    particle->dir = (random(2) > 0) ? 1 : -1;
-    particle->path_idx = random(paths_len);
-    particle->i = 0; //particle->path[0] ?  // XXX
-    particle->last = micros();
-    particle->bright = random(100);
-    particle->glow = random(100 - particle->bright, 100);  // TODO: tune this
-    particle->hue = random(256);
-    particle->updates = 0;
-}
-
-void debugParticle(uint16_t i) {
-    particle_t *particle = &particles[i];
-    Serial.print("debugging particle: "); Serial.println(i);
-    Serial.print("current micros "); Serial.println(micros());
-    Serial.print("cast micros "); Serial.println((uint32_t)(micros()));
-    Serial.print("current millis "); Serial.println(millis());
-    Serial.print("valid "); Serial.println(particle->valid);
-    Serial.print("path_idx "); Serial.println(particle->path_idx);
-    Serial.print("i "); Serial.println(particle->i);
-    Serial.print("wait "); Serial.println(particle->wait);
-    Serial.print("dir "); Serial.println(particle->dir);
-    Serial.print("last "); Serial.println(particle->last);
-    Serial.print("next "); Serial.println(particle->last + particle->wait);
-    Serial.print("bright "); Serial.println(particle->bright);
-    Serial.print("glow "); Serial.println(particle->glow);
-    Serial.print("hue "); Serial.println(particle->hue);
-    Serial.print("updates "); Serial.println(particle->updates);
-}
-
-void debugZX() {
-    Serial.print("ZX Sensor: ");
-    Serial.print("X: ");
-    Serial.print(x_pos);
-    Serial.print(" Z: ");
-    Serial.println(z_pos);
-}
-
-void testParticle() {
-    particle_t *particle = &particles[0];
-    particle->valid = 1;
-    particle->i = 0;
-    particle->path_idx = 1;
-    particle->wait = 10000;
-    particle->dir = 1;
-    particle->last = 0;
-    particle->bright = 80;
-    particle->glow = 10;
-    particle->hue = 0;
-    particle->updates = 0;
-}
-
-void updateParticle(particle_t *particle) {
-    uint32_t current = micros();
-    if (!(particle->valid)) return;
-    if (particle->last + particle->wait > current) return;
-    particle->i += particle->dir;
-    if (particle->i < 0 || particle->i >= paths[particle->path_idx].length) {
-        particle->valid = 0;
-    }
-    particle->last = micros();
-    particle->updates++;
-}
-
-void updateParticles() {
-    particle_t *particle;
-    for (uint8_t i = 0; i < NUM_PARTICLES; i++) {
-        particle = &particles[i];
-        updateParticle(particle);
-        if (!(particle->valid)) {
-            randomParticle(particle);
-            // testParticle();
-        }
-    }
-}
-
-void updateFixedParticle(uint8_t i, particle_t *particle) {
-    if (!(particle->valid)) return;
-    if (i == 0 || i == 1) {
-        particle->valid = 1;
-        particle->path_idx = i;
-        if (i == 0) {
-            particle->i = map(x_pos, 0, 255, 0, paths[particle->path_idx].length);
-        } else {
-            particle->i = map(z_pos, 0, 255, 0, paths[particle->path_idx].length);
-        }
-        particle->bright = 80;
-        particle->glow = 20;
-        particle->hue = 0;
-        particle->updates++;
-    }
-}
-
-void updateFixedParticles() {
-    particle_t *particle;
-    for (uint8_t i = 0; i < NUM_FIXED_PARTICLES; i++) {
-        particle = &fixed_particles[i];
-        updateFixedParticle(i, particle);
-    }
-}
-
-void drawPixel(int16_t i, uint8_t bright, uint8_t hue) {
-    if (i >= 0 && i < STRIP_LEN) {
-        // TODO: add hue
-        // TODO: add gamma correction
-        pixels[i].r += pgm_read_byte(&gamma8[bright]);
-        // pixels[i].g += pgm_read_byte(&gamma8[bright]);
-        pixels[i].b += pgm_read_byte(&gamma8[bright]);
-    }
-}
-
-void renderParticle(particle_t *particle) {
-    uint8_t bright;
-    if (!(particle->valid)) return;
-    // Forward glow
-    bright = particle->bright;
-    for (int16_t i = particle->i; i < paths[particle->path_idx].length; i++) {
-        step_t *path = paths[particle->path_idx].path;
-        drawPixel(path[i].pixel_i, bright, particle->hue);
-        if (bright < particle->glow) break;
-        bright -= particle->glow;
-    }
-    // Backward glow
-    bright = particle->bright;
-    for (int16_t i = particle->i; i > 0; i--) {
-        step_t *path = paths[particle->path_idx].path;
-        drawPixel(path[i].pixel_i, bright, particle->hue);
-        if (bright < particle->glow) break;
-        bright -= particle->glow;
-    }
-}
-
-void blankPixels() {
-    for (uint16_t i = 0; i < STRIP_LEN; i++) {
-        pixels[i].r = 0;
-        pixels[i].g = 0;
-        pixels[i].b = 0;
-    }
-}
-
-void renderParticles() {
-    blankPixels();
-    for (uint8_t i = 0; i < NUM_PARTICLES; i++) {
-        renderParticle(&particles[i]);
-    }
-    for (uint8_t i = 0; i < NUM_FIXED_PARTICLES; i++) {
-        renderParticle(&fixed_particles[i]);
-    }
-}
-
-void showPixels() {
-    for (uint16_t i = 0; i < STRIP_LEN; i++) {
-        strip.setPixelColor(i, pixels[i].r, pixels[i].g, pixels[i].b);
-    }
-    strip.show();
-}
-
 void readZX() {
     if ( zx_sensor.positionAvailable() ) {
         x_pos = zx_sensor.readX();
@@ -331,8 +361,6 @@ void readZX() {
         }
     }
 }
-
-
 
 void setup() {
     // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
@@ -353,11 +381,13 @@ void setup() {
 }
 
 void loop() {
-    // debugParticle(0);
-    debugZX();
+    Serial.println("loop:");
     readZX();
+    debugZX();
     updateParticles();
     updateFixedParticles();
+    debugParticle(0);
     renderParticles();
+    debugPixels();
     showPixels();
 }
