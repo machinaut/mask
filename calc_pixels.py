@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from collections import OrderedDict
+
 
 class Segment:
     def __init__(self, offset, length, in0, in1, out0, out1, sign, twin):
@@ -99,14 +101,14 @@ class Step:
 class Path:
     def __init__(self, name, seg_list, ends=False):
         self.name = name
-        self.steps = {}
+        self.steps = OrderedDict()
+        i = 0
         for seg in seg_list:
             segment = segments[abs(seg)]
             if seg > 0:
                 r = range(segment.length)
             else:
                 r = range(segment.length - 1, -1, -1)
-            i = 0
             for idx in r:
                 self.steps[i] = Step(i=i)
                 self.steps[i].pixel_i = segment.offset + idx

@@ -4,9 +4,12 @@
 #ifdef __AVR__
   #include <avr/power.h>
 #endif
+#define USE_ZX (0)  // XXX
 
+#if USE_ZX
 #include <Wire.h>
 #include <ZX_Sensor.h>
+#endif
 
 
 #define PIN 4  // Trinket M0
@@ -82,15 +85,15 @@ typedef struct path {
 } path_t;
 
 step_t path_l[] = {
-{  0,  -1}, /* seg None */{  1,  -1}, /* seg None */{  2,  -1}, /* seg None */{  3,  -1}, /* seg None */{  4,  -1}, /* seg None */{  5,  -1}, /* seg None */{  6,  -1}, /* seg None */{  7,  -1}, /* seg None */{  8,  -1}, /* seg None */{  9,  -1}, /* seg None */{ 10,  -1}, /* seg None */{ 11,  -1}, /* seg None */{ 12,  -1}, /* seg None */{ 13,  -1}, /* seg None */{ 14,  -1}, /* seg None */{ 15,  -1}, /* seg None */{ 16,  -1}, /* seg None */{ 17,  -1}, /* seg None */{ 18,  -1}, /* seg None */{ 19,  -1}, /* seg None */{ 20,  -1}, /* seg None */{ 21,  -1}, /* seg None */{ 22,  -1}, /* seg None */{ 23,  -1}, /* seg None */{ 24,  -1}, /* seg None */{ -1,  -1}, /* seg None */{ -2,  -1}, /* seg None */{ -3,  -1}, /* seg None */{ -4,  -1}, /* seg None */{ -5,  -1}, /* seg None */{ -6,  -1}, /* seg None */{ -7,  -1}, /* seg None */{ -8,  -1}, /* seg None */{ -9,  -1}, /* seg None */{-10,  -1}, /* seg None */{-11,  -1}, /* seg None */{-12,  -1}, /* seg None */{-13,  -1}, /* seg None */{-14,  -1}, /* seg None */{-15,  -1}, /* seg None */{-16,  -1}, /* seg None */{-17,  -1}, /* seg None */{-18,  -1}, /* seg None */{-19,  -1}, /* seg None */{-20,  -1}, /* seg None */{ 25,  -1}, /* seg None */{ 26,  -1}, /* seg None */{ 27,  -1}, /* seg None */{ 28,  -1}, /* seg None */{ 29,  -1}, /* seg None */{ 30,  -1}, /* seg None */{ 31,  -1}, /* seg None */
+{  0,  -1}, /* seg None */{  1,  -1}, /* seg None */{  2,   2}, /* seg 1 */{  3,   3}, /* seg 1 */{  4,   4}, /* seg 1 */{  5,   5}, /* seg 2 */{  6,   6}, /* seg 2 */{  7,   7}, /* seg 2 */{  8,   8}, /* seg 2 */{  9,   9}, /* seg 2 */{ 10,  10}, /* seg 2 */{ 11,  11}, /* seg 2 */{ 12,  12}, /* seg 2 */{ 13,  13}, /* seg 2 */{ 14,  14}, /* seg 2 */{ 15,  15}, /* seg 3 */{ 16,  16}, /* seg 3 */{ 17,  17}, /* seg 3 */{ 18,  18}, /* seg 3 */{ 19,  19}, /* seg 3 */{ 20,  20}, /* seg 3 */{ 21,  21}, /* seg 3 */{ 22,  22}, /* seg 3 */{ 23,  23}, /* seg 4 */{ 24,  24}, /* seg 4 */{ -1,  -1}, /* seg None */{ -2,  -1}, /* seg None */{ -3,  -1}, /* seg None */{ -4,  -1}, /* seg None */{ -5,  -1}, /* seg None */{ -6,  -1}, /* seg None */{ -7,  -1}, /* seg None */{ -8,  -1}, /* seg None */{ -9,  -1}, /* seg None */{-10,  -1}, /* seg None */{-11,  -1}, /* seg None */{-12,  -1}, /* seg None */{-13,  -1}, /* seg None */{-14,  -1}, /* seg None */{-15,  -1}, /* seg None */{-16,  -1}, /* seg None */{-17,  -1}, /* seg None */{-18,  -1}, /* seg None */{-19,  -1}, /* seg None */{-20,  -1}, /* seg None */{ 25,  25}, /* seg 4 */{ 26,  26}, /* seg 4 */{ 27,  27}, /* seg 4 */{ 28,  28}, /* seg 4 */{ 29,  29}, /* seg 4 */{ 30,  97}, /* seg -14 */{ 31,  96}, /* seg -14 */{ 32,  95}, /* seg -14 */{ 33,  94}, /* seg -14 */{ 34,  93}, /* seg -14 */{ 35,  92}, /* seg -14 */{ 36,  91}, /* seg -14 */{ 37,  90}, /* seg -14 */{ 38,  89}, /* seg -14 */{ 39,  88}, /* seg -14 */{ 40,  87}, /* seg -14 */{ 41,  86}, /* seg -14 */{ 42,  30}, /* seg 5 */{ 43,  31}, /* seg 5 */{ 44,  32}, /* seg 5 */{ 45,  33}, /* seg 5 */{ 46,  34}, /* seg 5 */{ 47,  35}, /* seg 6 */{ 48,  36}, /* seg 6 */{ 49,  37}, /* seg 6 */{ 50,  38}, /* seg 6 */{ 51,  39}, /* seg 6 */{ 52,  40}, /* seg 6 */{ 53,  41}, /* seg 6 */{ 54,  42}, /* seg 6 */{ 55,  43}, /* seg 6 */{ 56,  44}, /* seg 7 */{ 57,  45}, /* seg 7 */{ 58,  46}, /* seg 7 */{ 59,  47}, /* seg 7 */{ 60,  48}, /* seg 7 */{ 61,  49}, /* seg 7 */{ 62,  50}, /* seg 7 */{ 63,  51}, /* seg 7 */{ 64,  52}, /* seg 7 */{ 65,  53}, /* seg 8 */{ 66,  54}, /* seg 8 */{ 67,  55}, /* seg 8 */{ 68,  56}, /* seg 8 */{ 69,  57}, /* seg 8 */{ 70,  -1}, /* seg None */{ 71,  -1}, /* seg None */{ 72,  -1}, /* seg None */{ 73,  -1}, /* seg None */{ 74,  -1}, /* seg None */{ 75,  -1}, /* seg None */{ 76,  -1}, /* seg None */{ 77,  -1}, /* seg None */{ 78,  -1}, /* seg None */{ 79,  -1}, /* seg None */{ 80,  -1}, /* seg None */{ 81,  -1}, /* seg None */{ 82,  -1}, /* seg None */{ 83,  -1}, /* seg None */{ 84,  -1}, /* seg None */{ 85,  -1}, /* seg None */{ 86,  -1}, /* seg None */{ 87,  -1}, /* seg None */{ 88,  -1}, /* seg None */{ 89,  -1}, /* seg None */
 };
 uint16_t path_l_len = sizeof(path_l) / sizeof(path_l[0]);
 step_t path_r[] = {
-{  0,  -1}, /* seg None */{  1,  -1}, /* seg None */{  2,  -1}, /* seg None */{  3,  -1}, /* seg None */{  4,  -1}, /* seg None */{  5,  -1}, /* seg None */{  6,  -1}, /* seg None */{  7,  -1}, /* seg None */{  8,  -1}, /* seg None */{  9,  -1}, /* seg None */{ 10,  -1}, /* seg None */{ 11,  -1}, /* seg None */{ 12,  -1}, /* seg None */{ 13,  -1}, /* seg None */{ 14,  -1}, /* seg None */{ 15,  -1}, /* seg None */{ 16,  -1}, /* seg None */{ 17,  -1}, /* seg None */{ 18,  -1}, /* seg None */{ 19,  -1}, /* seg None */{ 20,  -1}, /* seg None */{ 21,  -1}, /* seg None */{ 22,  -1}, /* seg None */{ 23,  -1}, /* seg None */{ 24,  -1}, /* seg None */{ -1,  -1}, /* seg None */{ -2,  -1}, /* seg None */{ -3,  -1}, /* seg None */{ -4,  -1}, /* seg None */{ -5,  -1}, /* seg None */{ -6,  -1}, /* seg None */{ -7,  -1}, /* seg None */{ -8,  -1}, /* seg None */{ -9,  -1}, /* seg None */{-10,  -1}, /* seg None */{-11,  -1}, /* seg None */{-12,  -1}, /* seg None */{-13,  -1}, /* seg None */{-14,  -1}, /* seg None */{-15,  -1}, /* seg None */{-16,  -1}, /* seg None */{-17,  -1}, /* seg None */{-18,  -1}, /* seg None */{-19,  -1}, /* seg None */{-20,  -1}, /* seg None */{ 25,  -1}, /* seg None */{ 26,  -1}, /* seg None */{ 27,  -1}, /* seg None */{ 28,  -1}, /* seg None */{ 29,  -1}, /* seg None */{ 30,  -1}, /* seg None */{ 31,  -1}, /* seg None */
+{  0,  -1}, /* seg None */{  1,  -1}, /* seg None */{  2,  125}, /* seg -18 */{  3,  124}, /* seg -18 */{  4,  123}, /* seg -18 */{  5,  122}, /* seg -17 */{  6,  121}, /* seg -17 */{  7,  120}, /* seg -17 */{  8,  119}, /* seg -17 */{  9,  118}, /* seg -17 */{ 10,  117}, /* seg -17 */{ 11,  116}, /* seg -17 */{ 12,  115}, /* seg -17 */{ 13,  114}, /* seg -17 */{ 14,  113}, /* seg -17 */{ 15,  112}, /* seg -16 */{ 16,  111}, /* seg -16 */{ 17,  110}, /* seg -16 */{ 18,  109}, /* seg -16 */{ 19,  108}, /* seg -16 */{ 20,  107}, /* seg -16 */{ 21,  106}, /* seg -16 */{ 22,  105}, /* seg -16 */{ 23,  104}, /* seg -15 */{ 24,  103}, /* seg -15 */{ -1,  -1}, /* seg None */{ -2,  -1}, /* seg None */{ -3,  -1}, /* seg None */{ -4,  -1}, /* seg None */{ -5,  -1}, /* seg None */{ -6,  -1}, /* seg None */{ -7,  -1}, /* seg None */{ -8,  -1}, /* seg None */{ -9,  -1}, /* seg None */{-10,  -1}, /* seg None */{-11,  -1}, /* seg None */{-12,  -1}, /* seg None */{-13,  -1}, /* seg None */{-14,  -1}, /* seg None */{-15,  -1}, /* seg None */{-16,  -1}, /* seg None */{-17,  -1}, /* seg None */{-18,  -1}, /* seg None */{-19,  -1}, /* seg None */{-20,  -1}, /* seg None */{ 25,  102}, /* seg -15 */{ 26,  101}, /* seg -15 */{ 27,  100}, /* seg -15 */{ 28,  99}, /* seg -15 */{ 29,  98}, /* seg -15 */{ 30,  97}, /* seg -14 */{ 31,  96}, /* seg -14 */{ 32,  95}, /* seg -14 */{ 33,  94}, /* seg -14 */{ 34,  93}, /* seg -14 */{ 35,  92}, /* seg -14 */{ 36,  91}, /* seg -14 */{ 37,  90}, /* seg -14 */{ 38,  89}, /* seg -14 */{ 39,  88}, /* seg -14 */{ 40,  87}, /* seg -14 */{ 41,  86}, /* seg -14 */{ 42,  85}, /* seg -13 */{ 43,  84}, /* seg -13 */{ 44,  83}, /* seg -13 */{ 45,  82}, /* seg -13 */{ 46,  81}, /* seg -13 */{ 47,  80}, /* seg -12 */{ 48,  79}, /* seg -12 */{ 49,  78}, /* seg -12 */{ 50,  77}, /* seg -12 */{ 51,  76}, /* seg -12 */{ 52,  75}, /* seg -12 */{ 53,  74}, /* seg -12 */{ 54,  73}, /* seg -12 */{ 55,  72}, /* seg -12 */{ 56,  71}, /* seg -11 */{ 57,  70}, /* seg -11 */{ 58,  69}, /* seg -11 */{ 59,  68}, /* seg -11 */{ 60,  67}, /* seg -11 */{ 61,  66}, /* seg -11 */{ 62,  65}, /* seg -11 */{ 63,  64}, /* seg -11 */{ 64,  63}, /* seg -11 */{ 65,  62}, /* seg -10 */{ 66,  61}, /* seg -10 */{ 67,  60}, /* seg -10 */{ 68,  59}, /* seg -10 */{ 69,  58}, /* seg -10 */{ 70,  -1}, /* seg None */{ 71,  -1}, /* seg None */{ 72,  -1}, /* seg None */{ 73,  -1}, /* seg None */{ 74,  -1}, /* seg None */{ 75,  -1}, /* seg None */{ 76,  -1}, /* seg None */{ 77,  -1}, /* seg None */{ 78,  -1}, /* seg None */{ 79,  -1}, /* seg None */{ 80,  -1}, /* seg None */{ 81,  -1}, /* seg None */{ 82,  -1}, /* seg None */{ 83,  -1}, /* seg None */{ 84,  -1}, /* seg None */{ 85,  -1}, /* seg None */{ 86,  -1}, /* seg None */{ 87,  -1}, /* seg None */{ 88,  -1}, /* seg None */{ 89,  -1}, /* seg None */
 };
 uint16_t path_r_len = sizeof(path_r) / sizeof(path_r[0]);
 step_t path_b[] = {
-{  0,  -1}, /* seg None */{  1,  -1}, /* seg None */{  2,  125}, /* seg 18 */{  3,  126}, /* seg 18 */{  4,  127}, /* seg 18 */{  5,  -1}, /* seg None */{  6,  -1}, /* seg None */{  7,  -1}, /* seg None */{  8,  -1}, /* seg None */{  9,  -1}, /* seg None */{ 10,  -1}, /* seg None */{ 11,  -1}, /* seg None */{ 12,  -1}, /* seg None */{ 13,  -1}, /* seg None */{ 14,  -1}, /* seg None */{ 15,  -1}, /* seg None */{ 16,  -1}, /* seg None */{ 17,  -1}, /* seg None */{ 18,  -1}, /* seg None */{ 19,  -1}, /* seg None */{ 20,  -1}, /* seg None */{ 21,  -1}, /* seg None */{ 22,  -1}, /* seg None */{ 23,  -1}, /* seg None */{ 24,  -1}, /* seg None */{ -1,  -1}, /* seg None */{ -2,  -1}, /* seg None */{ -3,  -1}, /* seg None */{ -4,  -1}, /* seg None */{ -5,  -1}, /* seg None */{ -6,  -1}, /* seg None */{ -7,  -1}, /* seg None */{ -8,  -1}, /* seg None */{ -9,  -1}, /* seg None */{-10,  -1}, /* seg None */{-11,  -1}, /* seg None */{-12,  -1}, /* seg None */{-13,  -1}, /* seg None */{-14,  -1}, /* seg None */{-15,  -1}, /* seg None */{-16,  -1}, /* seg None */{-17,  -1}, /* seg None */{-18,  -1}, /* seg None */{-19,  -1}, /* seg None */{-20,  -1}, /* seg None */{ 25,  -1}, /* seg None */{ 26,  -1}, /* seg None */{ 27,  -1}, /* seg None */{ 28,  -1}, /* seg None */{ 29,  -1}, /* seg None */{ 30,  -1}, /* seg None */{ 31,  -1}, /* seg None */
+{  0,  -1}, /* seg None */{  1,  -1}, /* seg None */{  2,   2}, /* seg 1 */{  3,   3}, /* seg 1 */{  4,   4}, /* seg 1 */{  5,   5}, /* seg 2 */{  6,   6}, /* seg 2 */{  7,   7}, /* seg 2 */{  8,   8}, /* seg 2 */{  9,   9}, /* seg 2 */{ 10,  10}, /* seg 2 */{ 11,  11}, /* seg 2 */{ 12,  12}, /* seg 2 */{ 13,  13}, /* seg 2 */{ 14,  14}, /* seg 2 */{ 15,  15}, /* seg 3 */{ 16,  16}, /* seg 3 */{ 17,  17}, /* seg 3 */{ 18,  18}, /* seg 3 */{ 19,  19}, /* seg 3 */{ 20,  20}, /* seg 3 */{ 21,  21}, /* seg 3 */{ 22,  22}, /* seg 3 */{ 23,  23}, /* seg 4 */{ 24,  24}, /* seg 4 */{ -1,  -1}, /* seg None */{ -2,  -1}, /* seg None */{ -3,  -1}, /* seg None */{ -4,  -1}, /* seg None */{ -5,  -1}, /* seg None */{ -6,  -1}, /* seg None */{ -7,  -1}, /* seg None */{ -8,  -1}, /* seg None */{ -9,  -1}, /* seg None */{-10,  -1}, /* seg None */{-11,  -1}, /* seg None */{-12,  -1}, /* seg None */{-13,  -1}, /* seg None */{-14,  -1}, /* seg None */{-15,  -1}, /* seg None */{-16,  -1}, /* seg None */{-17,  -1}, /* seg None */{-18,  -1}, /* seg None */{-19,  -1}, /* seg None */{-20,  -1}, /* seg None */{ 25,  25}, /* seg 4 */{ 26,  26}, /* seg 4 */{ 27,  27}, /* seg 4 */{ 28,  28}, /* seg 4 */{ 29,  29}, /* seg 4 */{ 30,  97}, /* seg -14 */{ 31,  96}, /* seg -14 */{ 32,  95}, /* seg -14 */{ 33,  94}, /* seg -14 */{ 34,  93}, /* seg -14 */{ 35,  92}, /* seg -14 */{ 36,  91}, /* seg -14 */{ 37,  90}, /* seg -14 */{ 38,  89}, /* seg -14 */{ 39,  88}, /* seg -14 */{ 40,  87}, /* seg -14 */{ 41,  86}, /* seg -14 */{ 42,  30}, /* seg 5 */{ 43,  31}, /* seg 5 */{ 44,  32}, /* seg 5 */{ 45,  33}, /* seg 5 */{ 46,  34}, /* seg 5 */{ 47,  35}, /* seg 6 */{ 48,  36}, /* seg 6 */{ 49,  37}, /* seg 6 */{ 50,  38}, /* seg 6 */{ 51,  39}, /* seg 6 */{ 52,  40}, /* seg 6 */{ 53,  41}, /* seg 6 */{ 54,  42}, /* seg 6 */{ 55,  43}, /* seg 6 */{ 56,  44}, /* seg 7 */{ 57,  45}, /* seg 7 */{ 58,  46}, /* seg 7 */{ 59,  47}, /* seg 7 */{ 60,  48}, /* seg 7 */{ 61,  49}, /* seg 7 */{ 62,  50}, /* seg 7 */{ 63,  51}, /* seg 7 */{ 64,  52}, /* seg 7 */{ 65,  53}, /* seg 8 */{ 66,  54}, /* seg 8 */{ 67,  55}, /* seg 8 */{ 68,  56}, /* seg 8 */{ 69,  57}, /* seg 8 */{ 70,  58}, /* seg 10 */{ 71,  59}, /* seg 10 */{ 72,  60}, /* seg 10 */{ 73,  61}, /* seg 10 */{ 74,  62}, /* seg 10 */{ 75,  63}, /* seg 11 */{ 76,  64}, /* seg 11 */{ 77,  65}, /* seg 11 */{ 78,  66}, /* seg 11 */{ 79,  67}, /* seg 11 */{ 80,  68}, /* seg 11 */{ 81,  69}, /* seg 11 */{ 82,  70}, /* seg 11 */{ 83,  71}, /* seg 11 */{ 84,  72}, /* seg 12 */{ 85,  73}, /* seg 12 */{ 86,  74}, /* seg 12 */{ 87,  75}, /* seg 12 */{ 88,  76}, /* seg 12 */{ 89,  77}, /* seg 12 */{ 90,  78}, /* seg 12 */{ 91,  79}, /* seg 12 */{ 92,  80}, /* seg 12 */{ 93,  81}, /* seg 13 */{ 94,  82}, /* seg 13 */{ 95,  83}, /* seg 13 */{ 96,  84}, /* seg 13 */{ 97,  85}, /* seg 13 */{ 98,  86}, /* seg 14 */{ 99,  87}, /* seg 14 */{ 100,  88}, /* seg 14 */{ 101,  89}, /* seg 14 */{ 102,  90}, /* seg 14 */{ 103,  91}, /* seg 14 */{ 104,  92}, /* seg 14 */{ 105,  93}, /* seg 14 */{ 106,  94}, /* seg 14 */{ 107,  95}, /* seg 14 */{ 108,  96}, /* seg 14 */{ 109,  97}, /* seg 14 */{ 110,  98}, /* seg 15 */{ 111,  99}, /* seg 15 */{ 112,  100}, /* seg 15 */{ 113,  101}, /* seg 15 */{ 114,  102}, /* seg 15 */{ 115,  103}, /* seg 15 */{ 116,  104}, /* seg 15 */{ 117,  105}, /* seg 16 */{ 118,  106}, /* seg 16 */{ 119,  107}, /* seg 16 */{ 120,  108}, /* seg 16 */{ 121,  109}, /* seg 16 */{ 122,  110}, /* seg 16 */{ 123,  111}, /* seg 16 */{ 124,  112}, /* seg 16 */{ 125,  113}, /* seg 17 */{ 126,  114}, /* seg 17 */{ 127,  115}, /* seg 17 */{ 128,  116}, /* seg 17 */{ 129,  117}, /* seg 17 */{ 130,  118}, /* seg 17 */{ 131,  119}, /* seg 17 */{ 132,  120}, /* seg 17 */{ 133,  121}, /* seg 17 */{ 134,  122}, /* seg 17 */{ 135,  123}, /* seg 18 */{ 136,  124}, /* seg 18 */{ 137,  125}, /* seg 18 */{ 138,  126}, /* seg 18 */{ 139,  127}, /* seg 18 */{ 140,  -1}, /* seg None */{ 141,  -1}, /* seg None */{ 142,  -1}, /* seg None */{ 143,  -1}, /* seg None */{ 144,  -1}, /* seg None */{ 145,  -1}, /* seg None */{ 146,  -1}, /* seg None */{ 147,  -1}, /* seg None */{ 148,  -1}, /* seg None */{ 149,  -1}, /* seg None */{ 150,  -1}, /* seg None */{ 151,  -1}, /* seg None */{ 152,  -1}, /* seg None */{ 153,  -1}, /* seg None */{ 154,  -1}, /* seg None */{ 155,  -1}, /* seg None */{ 156,  -1}, /* seg None */{ 157,  -1}, /* seg None */{ 158,  -1}, /* seg None */{ 159,  -1}, /* seg None */
 };
 uint16_t path_b_len = sizeof(path_b) / sizeof(path_b[0]);
 
@@ -102,7 +105,9 @@ path_t paths[] = {
 uint16_t paths_len = sizeof(paths) / sizeof(paths[0]);
 
 
+#if USE_ZX
 ZX_Sensor zx_sensor = ZX_Sensor(0x10);  // ZX Sensor I2C address
+#endif
 #define NOSE_HISTORY (20)
 uint8_t x_pos;
 uint32_t x_pos_last_micros;
@@ -200,6 +205,9 @@ void updateParticles() {
         updateParticle(particle);
         if (!(particle->valid)) {
             // randomParticle(particle);
+            if (particle == &particles[0]) {
+                testParticle();
+            }
         }
     }
 }
@@ -231,6 +239,10 @@ void updateFixedParticles() {
 }
 
 void drawPixel(int16_t i, uint8_t bright, uint8_t hue) {
+    Serial.print("drawpixel i bright hue");
+    Serial.print(i); Serial.print(" ");
+    Serial.print(bright); Serial.print(" ");
+    Serial.print(hue); Serial.println("");
     if (i >= 0 && i < STRIP_LEN) {
         // TODO: add hue
         // TODO: add gamma correction
@@ -250,6 +262,8 @@ void renderParticle(particle_t *particle) {
     for (int16_t i = particle->i; i < paths[particle->path_idx].length; i++) {
         step_t *path = paths[particle->path_idx].path;
         Serial.print("drawing pixel: "); Serial.println(i);
+        Serial.print("step i"); Serial.print(path[i].i);
+        Serial.print(" pixel_i "); Serial.println(path[i].pixel_i);
         drawPixel(path[i].pixel_i, bright, particle->hue);
         if (bright < particle->glow) break;
         bright -= particle->glow;
@@ -274,6 +288,7 @@ void blankPixels() {
 }
 
 void renderParticles() {
+    Serial.println("render particles start");
     blankPixels();
     for (uint8_t i = 0; i < NUM_PARTICLES; i++) {
         renderParticle(&particles[i]);
@@ -281,6 +296,7 @@ void renderParticles() {
     for (uint8_t i = 0; i < NUM_FIXED_PARTICLES; i++) {
         renderParticle(&fixed_particles[i]);
     }
+    Serial.println("render particles end");
 }
 
 void debugPixels() {
@@ -298,12 +314,14 @@ void debugPixels() {
 }
 
 void showPixels() {
+    Serial.println("showing pixels");
     for (uint16_t i = 0; i < STRIP_LEN; i++) {
         strip.setPixelColor(i, pixels[i].r, pixels[i].g, pixels[i].b);
     }
     strip.show();
 }
 
+#if USE_ZX
 void initZX(){
       uint8_t ver;
       // Initialize ZX Sensor (configure I2C and read model ID)
@@ -343,7 +361,9 @@ void initZX(){
         Serial.print(" to work with this library. Stopping.");
       }
 }
+#endif
 
+#if USE_ZX
 void readZX() {
     if ( zx_sensor.positionAvailable() ) {
         x_pos = zx_sensor.readX();
@@ -361,6 +381,7 @@ void readZX() {
         }
     }
 }
+#endif
 
 void setup() {
     // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
@@ -374,7 +395,9 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
     randomSeed(analogRead(1));
+#if USE_ZX
     initZX();
+#endif
     strip.begin();
     strip.show(); // Initialize all pixels to 'off'
     testParticle();
@@ -382,8 +405,10 @@ void setup() {
 
 void loop() {
     Serial.println("loop:");
+#if USE_ZX
     readZX();
     debugZX();
+#endif
     updateParticles();
     updateFixedParticles();
     debugParticle(0);
