@@ -74,9 +74,9 @@ typedef struct particle {
     uint8_t updates;  // debug counter
 } particle_t;
 
-#define NUM_PARTICLES (20)
+#define NUM_PARTICLES (10)
 particle_t particles[NUM_PARTICLES] = {0};
-#define NUM_FIXED_PARTICLES (2)
+#define NUM_FIXED_PARTICLES (1)
 particle_t fixed_particles[NUM_FIXED_PARTICLES] = {0};
 
 typedef struct path {
@@ -614,25 +614,34 @@ void updateParticles() {
 }
 
 void updateFixedParticle(uint8_t i, particle_t *particle) {
-    Serial.print("Updating fixed particle: "); Serial.print((uint32_t)(particle));
-    Serial.print("\ti: "); Serial.println(i);
+    // Serial.print("Updating fixed particle: "); Serial.print((uint32_t)(particle));
+    // Serial.print("\ti: "); Serial.println(i);
     // if (!(particle->valid)) return;
-    if (i == 0 || i == 1) {
-        Serial.print("fixed particle: "); Serial.println(i);
-        Serial.print("particle->i: "); Serial.println(particle->i);
+    if (i == 0) {
+        // Serial.print("fixed particle: "); Serial.println(i);
+        // Serial.print("particle->i: "); Serial.println(particle->i);
         particle->valid = 1;
-        particle->path_idx = i;
-        if (i == 0) {
-            particle->i = map(x_pos, 0, 255, 0, paths[particle->path_idx].length);
+        particle->path_idx = 2;  // both path
+        if ((x_pos > 200) || (x_pos < 55) || (z_pos) > 180) {
+            // DEAD READING
+            particle->bright_r = (9999 * (uint32_t) particle->bright_r) / 10000;
+            particle->bright_g = (9999 * (uint32_t) particle->bright_g) / 10000;
+            particle->bright_b = (9999 * (uint32_t) particle->bright_b) / 10000;
         } else {
-            particle->i = map(z_pos, 0, 255, 0, paths[particle->path_idx].length);
+            uint8_t bright = map(z_pos, 0, 180, 255, 80);
+            uint8_t glow = map(z_pos, 0, 180, 3, 10);
+            // particle->i = map(x_pos, 55, 200, 80, 100);  // pixels 60 to 80
+            particle->i = 90; // center, roughly
+            particle->bright_r = (MAX(particle->bright_r, bright >> 4) >> 1) + ((particle->bright_r) >> 1);
+            particle->bright_g = (MAX(particle->bright_g, bright) >> 1) + ((particle->bright_g) >> 1);
+            particle->bright_b = (MAX(particle->bright_b, bright >> 4) >> 1) + ((particle->bright_b) >> 1);
+            // particle->bright_r = (MAX(particle->bright_r, bright >> 4) >> 1) + ((particle->bright_r) >> 1);
+            // particle->bright_g = MAX(particle->bright_g, bright);
+            // particle->bright_b = MAX(particle->bright_b, bright >> 4);
+            particle->glow_r = glow;
+            particle->glow_g = glow;
+            particle->glow_b = glow;
         }
-        particle->bright_r = 80;
-        particle->bright_g = 250;
-        particle->bright_b = 80;
-        particle->glow_r = 10;
-        particle->glow_g = 5;
-        particle->glow_b = 10;
         particle->updates++;
     }
 }
@@ -657,8 +666,8 @@ void renderParticle(particle_t *particle) {
     int16_t bright_g = 0;
     int16_t bright_b = 0;
     if (!(particle->valid)) return;
-    // Serial.print("rendering particle"); Serial.println((uint32_t)(particle));
-    // Serial.print("starting at: "); Serial.println(particle->i);
+    Serial.print("rendering particle"); Serial.println((uint32_t)(particle));
+    Serial.print("starting at: "); Serial.println(particle->i);
     // Forward glow
     bright_r = particle->bright_r;
     bright_g = particle->bright_g;
@@ -678,6 +687,7 @@ void renderParticle(particle_t *particle) {
     }
     // Backward glow
     bright_r = particle->bright_r;
+    bright_g = particle->bright_g;
     bright_b = particle->bright_b;
     for (int16_t i = particle->i; i > 0; i--) {
         step_t *path = paths[particle->path_idx].path;
@@ -752,8 +762,8 @@ void parseZXSerial() {
     z_pos = z_pos_next;
     zx_state = 0;
   }
-  // Serial.print("x: "); Serial.print(x_pos);
-  // Serial.print("\tz: "); Serial.print(z_pos);
+  Serial.print("x: "); Serial.print(x_pos);
+  Serial.print("\tz: "); Serial.println(z_pos);
   // Serial.print("\txn: "); Serial.print(x_pos_next);
   // Serial.print("\tzn: "); Serial.println(z_pos_next);
 }
