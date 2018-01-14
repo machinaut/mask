@@ -102,6 +102,9 @@ class Path:
     def __init__(self, name, seg_list, ends=False):
         self.name = name
         self.steps = OrderedDict()
+        if ends:
+            for j in range(-20, 0, 1):
+                self.steps[j] = Step(i=j)
         i = 0
         for seg in seg_list:
             segment = segments[abs(seg)]
@@ -114,18 +117,16 @@ class Path:
                 self.steps[i].pixel_i = segment.offset + idx
                 self.steps[i].seg = seg
                 i += 1
-            if ends:
-                for j in range(i, i + 20):
-                    self.steps[j] = Step(i=j)
-                for j in range(1, -21, -1):
-                    self.steps[j] = Step(i=j)
+        if ends:
+            for j in range(i, i + 20):
+                self.steps[j] = Step(i=j)
 
     def __str__(self):
         # PYTHON IS BAD
         s = "step_t path_{name}[] =".format(name=self.name)
         s += " {\n"
         for step in self.steps.values():
-            s += str(step)
+            s += '    ' + str(step) + '\n'
         s += '\n};\n'
         s += 'uint16_t path_{name}_len = sizeof(path_{name}) / sizeof(path_{name}[0]);'.format(name=self.name)
         return s
