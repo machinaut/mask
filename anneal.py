@@ -35,12 +35,13 @@ normal_c_tf = tf.linalg.cross(edge_cd_tf, edge_bc_tf)
 normal_d_tf = tf.linalg.cross(edge_da_tf, edge_cd_tf)
 normal_sum_tf = normal_a_tf + normal_b_tf + normal_c_tf + normal_d_tf
 normal_len_tf = tf.sqrt(tf.reduce_sum(tf.square(normal_sum_tf), axis=1))
-normal_unit_tf = tf.divide(normal_sum_tf, normal_len_tf)
+normal_unit_tf = tf.divide(normal_sum_tf, tf.expand_dims(normal_len_tf, 1))
 vertices_mean_tf = (vertices_a_tf + vertices_b_tf + vertices_c_tf + vertices_d_tf) / 4
 diff_a_tf = vertices_a_tf - vertices_mean_tf
 diff_b_tf = vertices_b_tf - vertices_mean_tf
 diff_c_tf = vertices_c_tf - vertices_mean_tf
 diff_d_tf = vertices_d_tf - vertices_mean_tf
+
 
 '''
 How to do this loss function:
